@@ -2,3 +2,6 @@
 name = "Xylograph"
 version = "0.1.0"
 entrypoint = "lib.typ"
+authors = ["Inertia"]
+license = "MIT"
+description = "A simple typst theme for academic notes with some imprint fonts."
