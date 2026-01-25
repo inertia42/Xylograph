@@ -7,6 +7,74 @@
 #let ecolor = rgb(0, 0, 0) // 定义主题色为黑色
 #let geyecolor = rgb(251, 250, 248) // 定义背景色为一种柔和的护眼灰 (Hazy background)
 
+// 修复公式后段落首行缩进的辅助函数
+// 参考 https://github.com/typst/typst/issues/3206#issuecomment-3013274959
+#let fix-indent(it) = {
+  // 辅助函数：安全地获取 children
+  let get-children(elem) = {
+    let f = elem.fields()
+    if "children" in f {
+      f.children
+    } else if "child" in f {
+      // 被包装的元素，递归获取
+      get-children(f.child)
+    } else {
+      none
+    }
+  }
+
+  // 辅助函数：解包获取实际元素
+  let unwrap(elem) = {
+    let f = elem.fields()
+    if "child" in f and "styles" in f {
+      // 这是一个 styled 包装
+      unwrap(f.child)
+    } else {
+      elem
+    }
+  }
+
+  let children = get-children(it)
+  if children == none { return it }
+
+  let cnt = -1
+  let processing = 0
+
+  for child in children {
+    cnt += 1
+    let actual = unwrap(child)
+    let child-func = actual.func()
+
+    if processing >= 2 {
+      processing -= 1
+      continue
+    } else if processing == 1 {
+      processing -= 1
+      context h(-par.first-line-indent.amount) + child
+      continue
+    }
+
+    child
+
+    if (
+      cnt < children.len() - 2
+        and (
+          (child-func == math.equation and "block" in actual.fields() and actual.block)
+            or child-func == list.item
+            or child-func == enum.item
+            or child-func == raw
+        )
+        and {
+          let next1-func = unwrap(children.at(cnt + 1)).func()
+          let next2-func = unwrap(children.at(cnt + 2)).func()
+          next1-func != parbreak and next2-func == text
+        }
+    ) {
+      processing = 2
+    }
+  }
+}
+
 #let conf(
   title: "",
   author: "",
@@ -156,118 +224,64 @@
 
   // 调整数学公式后段落的首行缩进
   // 如果段落紧挨行间公式，则插入一个反向缩进，以避免首行缩进
-  // 参考 https://github.com/typst/typst/issues/3206#issuecomment-3013274959
-  show: it => {
-    // 辅助函数：安全地获取 children
-    let get-children(elem) = {
-      let f = elem.fields()
-      if "children" in f {
-        f.children
-      } else if "child" in f {
-        // 被包装的元素，递归获取
-        get-children(f.child)
-      } else {
-        none
-      }
-    }
-
-    // 辅助函数：解包获取实际元素
-    let unwrap(elem) = {
-      let f = elem.fields()
-      if "child" in f and "styles" in f {
-        // 这是一个 styled 包装
-        unwrap(f.child)
-      } else {
-        elem
-      }
-    }
-
-    let children = get-children(it)
-    if children == none { return it }
-
-    let cnt = -1
-    let processing = 0
-
-    for child in children {
-      cnt += 1
-      let actual = unwrap(child)
-      let child-func = actual.func()
-
-      if processing >= 2 {
-        processing -= 1
-        continue
-      } else if processing == 1 {
-        processing -= 1
-        context h(-par.first-line-indent.amount) + child
-        continue
-      }
-
-      child
-
-      if (
-        cnt < children.len() - 2
-          and (
-            (child-func == math.equation and "block" in actual.fields() and actual.block)
-              or child-func == list.item
-              or child-func == enum.item
-              or child-func == raw
-          )
-          and {
-            let next1-func = unwrap(children.at(cnt + 1)).func()
-            let next2-func = unwrap(children.at(cnt + 2)).func()
-            next1-func != parbreak and next2-func == text
-          }
-      ) {
-        processing = 2
-      }
-    }
-  }
+  show: fix-indent
 
 
   // 正文内容
   body
 }
 
-// 定理环境定义
-// 使用 Typst 的 counter 来自动编号定理、定义等
-#let theorem_counter = counter("theorem")
-
-// 定义“定理”环境
-#let theorem(body, title: "定理") = {
-  theorem_counter.step() // 增加计数器
-  block(width: 100%, breakable: true)[
-    #set text(style: "italic") // 定理内容通常使用斜体（或楷体）
-    #text(fill: ecolor, weight: "bold")[#title #theorem_counter.display()] \
-    #body
-  ]
+// 附录环境配置
+// 使用时不应包裹整个文档，而是放在正文结束后，通过 show 规则调用：
+// show: appendix
+#let appendix(body) = {
+  set heading(numbering: "A.1", supplement: [Appendix])
+  counter(heading).update(0)
+  // 在附录中也应用缩进修复
+  show: fix-indent
+  body
 }
 
-// 定义“定义”环境
-#let definition(body, title: "定义") = {
-  theorem_counter.step()
-  block(width: 100%, breakable: true)[
-    // 定义环境标题加粗，内容通常保持正文样式
-    #text(fill: ecolor, weight: "bold")[#title #theorem_counter.display()] \
-    #body
-  ]
-}
+// // 定理环境定义
+// // 使用 Typst 的 counter 来自动编号定理、定义等
+// #let theorem_counter = counter("theorem")
 
-// 定义“引理”环境
-#let lemma(body, title: "引理") = {
-  theorem_counter.step()
-  block(width: 100%, breakable: true)[
-    #set text(style: "italic")
-    #text(fill: ecolor, weight: "bold")[#title #theorem_counter.display()] \
-    #body
-  ]
-}
+// // 定义“定理”环境
+// #let theorem(body, title: "定理") = {
+//   theorem_counter.step() // 增加计数器
+//   block(width: 100%, breakable: true)[
+//     #set text(style: "italic") // 定理内容通常使用斜体（或楷体）
+//     #text(fill: ecolor, weight: "bold")[#title #theorem_counter.display()] \
+//     #body
+//   ]
+// }
 
-// 定义“证明”环境
-// 证明环境不参与编号，结尾添加 QED 符号 (square)
-#let proof(body) = {
-  block(width: 100%, breakable: true)[
-    #text(fill: ecolor, weight: "bold")[证明] \
-    #body
-    #align(right)[$square$] // 右对齐的证毕符号
-  ]
-}
+// // 定义“定义”环境
+// #let definition(body, title: "定义") = {
+//   theorem_counter.step()
+//   block(width: 100%, breakable: true)[
+//     // 定义环境标题加粗，内容通常保持正文样式
+//     #text(fill: ecolor, weight: "bold")[#title #theorem_counter.display()] \
+//     #body
+//   ]
+// }
+
+// // 定义“引理”环境
+// #let lemma(body, title: "引理") = {
+//   theorem_counter.step()
+//   block(width: 100%, breakable: true)[
+//     #set text(style: "italic")
+//     #text(fill: ecolor, weight: "bold")[#title #theorem_counter.display()] \
+//     #body
+//   ]
+// }
+
+// // 定义“证明”环境
+// // 证明环境不参与编号，结尾添加 QED 符号 (square)
+// #let proof(body) = {
+//   block(width: 100%, breakable: true)[
+//     #text(fill: ecolor, weight: "bold")[证明] \
+//     #body
+//     #align(right)[$square$] // 右对齐的证毕符号
+//   ]
+// }

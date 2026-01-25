@@ -25,6 +25,7 @@
 - [ ] 参考文献修改 csl 以实现自定义
 - [ ] 脚注、边注等各类注释
 - [ ] 附录等部分的实现
+- [ ] 如何处理各类便捷定义
 
 
 = 使用相关
@@ -136,7 +137,7 @@ Typst v0.13 改进了之前的首行缩进问题，现在可以用如下命令
 ```typc
 #set par(first-line-indent: (amount: 2em, all: true))
 ```
-来设置首行缩进，但是这带来了新的问题，即公式、图表等块元素的下一行会自动缩进，可见#link("https://typst-doc-cn.github.io/guide/FAQ/block-equation-in-paragraph.html")[FAQ：如何避免公式、图表等块元素的下一行缩进？]，但是其中给出的解决方案不好用，因此从相关#link("https://github.com/typst/typst/issues/3206#issuecomment-3013274959")[issue]中找到了一个方案，但是原始版本会和上面的`notag`解决方案冲突，修改后解决方案如下，思路是给公式后紧接着的行前添加一个反向缩进（若有空行则不添加）。但这个方案还有待进一步优化。
+来设置首行缩进，但是这带来了新的问题，即公式、图表等块元素的下一行会自动缩进，可见#link("https://typst-doc-cn.github.io/guide/FAQ/block-equation-in-paragraph.html")[FAQ：如何避免公式、图表等块元素的下一行缩进？]，但是其中给出的解决方案不好用，因此从相关#link("https://github.com/typst/typst/issues/3206#issuecomment-3013274959")[issue]中找到了一个方案，但是原始版本会和上面的`notag`解决方案冲突，修改后解决方案如下，思路是给公式后紧接着的行前添加一个反向缩进（若有空行则不添加）。但这个方案还有待进一步优化，其需要放在所有`show`规则之后，引用模板时需要注意。
 ```typc
 #show: it => {
   // 辅助函数：安全地获取 children

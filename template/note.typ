@@ -5,6 +5,8 @@
 
 #show: el.default-enum-list
 
+
+// 下面这段是设置文档的元数据，需要放在所有 show 规则之后
 #show: conf.with(
   title: "笔记",
   author: "Inertia",
