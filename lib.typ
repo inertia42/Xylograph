@@ -220,7 +220,13 @@
   show math.equation: set block(breakable: true)
 
   // 调整数学公式与旁边文字之间的空白
-  show math.equation.where(block: false): it => h(0.25em, weak: true) + it + h(0.25em, weak: true)
+  let math-spacing(it) = h(0.25em, weak: true) + it + h(0.25em, weak: true)
+  show math.equation.where(block: false): math-spacing
+  // 确保此修正也能应用到脚注 (footnote) 中
+  show footnote.entry: it => {
+    show math.equation.where(block: false): math-spacing
+    it
+  }
 
   // 调整数学公式后段落的首行缩进
   // 如果段落紧挨行间公式，则插入一个反向缩进，以避免首行缩进
