@@ -122,6 +122,15 @@ Typst大致支持盘古之白，但是`raw`元素以及行内公式两边不会�
 show math.equation.where(block: false): it => h(0.25em, weak: true) + it + h(0.25em, weak: true)
 ```
 
+但是这种处理没法正确处理公式和标点符号之间的间距，根据#link("https://qiita.com/zr_tex8r/items/a9d82669881d8442b574")[这篇文章]，可以将两边插入的 `h(0.25em, weak: true)` 改为某个所有字符均零宽字体的某个英文字符，以触发对中英文间距的自动处理。
+```typc
+#show math.equation.where(block: false): it => {
+  let ghost = text(font: "Adobe Blank", "\u{375}")
+  ghost; it; ghost
+}
+```
+使用的字体见#link("https://github.com/adobe-fonts/adobe-blank")[Adobe Blank]。
+
 === 文本对齐问题
 Typst 的中文文本对齐实现不佳，可见#link("https://typst-doc-cn.github.io/clreq/#justification")[clreq gap for typst：文本对齐]。部分问题可以通过使用两端对齐来解决，但是这会带来新的问题，且不符合中文排版习惯，需要持续关注相关改进。
 

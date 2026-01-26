@@ -101,6 +101,17 @@
     },
   )
 
+  // 修复脚注中的行间公式公式与中文的间距问题，footnote 的相关规则似乎要放置得非常靠前才能正常生效
+  show footnote.entry: it => {
+    show math.equation.where(block: false): it => {
+      let ghost = text(font: "Adobe Blank", "\u{375}")
+      ghost
+      it
+      ghost
+    }
+    it
+  }
+
   // 可以通过在命令行运行 `typst fonts` 查看系统已安装字体的准确名称。Tinymist 插件也可以查看系统中能读取到的字体列表
   //
   // 字体列表说明：
@@ -197,6 +208,7 @@
     }
   ]
 
+
   // 链接样式设置
   show link: underline
   // 设置链接下划线的偏移量
@@ -213,7 +225,7 @@
   let parencite(key, ..args) = [文献~#cite(key, style: "ieee", ..args)]
 
   // 设置数学公式编号
-  set math.equation(numbering: "(1)")
+  set math.equation(numbering: "(1)", number-align: bottom + end)
   show math.equation.where(label: <notag>): set math.equation(numbering: none)
 
   // 设置长数学公式跨页
@@ -221,12 +233,14 @@
 
   // 调整数学公式与旁边文字之间的空白
   let math-spacing(it) = h(0.25em, weak: true) + it + h(0.25em, weak: true)
-  show math.equation.where(block: false): math-spacing
-  // 确保此修正也能应用到脚注 (footnote) 中
-  show footnote.entry: it => {
-    show math.equation.where(block: false): math-spacing
+  show math.equation.where(block: false): it => {
+    let ghost = text(font: "Adobe Blank", "\u{375}")
+    ghost
     it
+    ghost
   }
+  // 确保此修正也能应用到脚注 (footnote) 中
+
 
   // 调整数学公式后段落的首行缩进
   // 如果段落紧挨行间公式，则插入一个反向缩进，以避免首行缩进
@@ -241,7 +255,7 @@
 // 使用时不应包裹整个文档，而是放在正文结束后，通过 show 规则调用：
 // show: appendix
 #let appendix(body) = {
-  set heading(numbering: "A.1", supplement: [Appendix])
+  set heading(numbering: "A.1", supplement: [附录])
   counter(heading).update(0)
   // 在附录中也应用缩进修复
   show: fix-indent
