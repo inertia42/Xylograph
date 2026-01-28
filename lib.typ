@@ -103,6 +103,7 @@
 
   // 修复脚注中的行间公式公式与中文的间距问题，footnote 的相关规则似乎要放置得非常靠前才能正常生效
   show footnote.entry: it => {
+    show math.equation.where(block: false): set math.frac(style: "horizontal")
     show math.equation.where(block: false): it => {
       let ghost = text(font: "Adobe Blank", "\u{375}")
       ghost
@@ -221,11 +222,10 @@
     show math.frac: set math.frac(style: "horizontal")
     it
   }
-  // 定义非角标引用
-  let parencite(key, ..args) = [文献~#cite(key, style: "ieee", ..args)]
+
 
   // 设置数学公式编号
-  set math.equation(numbering: "(1)", number-align: bottom + end)
+  set math.equation(numbering: n => numbering("(1)", n), number-align: bottom + end)
   show math.equation.where(label: <notag>): set math.equation(numbering: none)
 
   // 设置长数学公式跨页
@@ -239,14 +239,9 @@
     it
     ghost
   }
-  // 确保此修正也能应用到脚注 (footnote) 中
-
-
   // 调整数学公式后段落的首行缩进
   // 如果段落紧挨行间公式，则插入一个反向缩进，以避免首行缩进
   show: fix-indent
-
-
   // 正文内容
   body
 }
@@ -305,3 +300,48 @@
 //     #align(right)[$square$] // 右对齐的证毕符号
 //   ]
 // }
+
+#let bessel_j(n, x) = {
+  if x == 0 { return if n == 0 { 1.0 } else { 0.0 } }
+
+  let x_2 = x / 2.0
+  // 初始项: (x/2)^n / n!
+  let term = calc.pow(x_2, n) / calc.fact(n)
+  let result = term
+  let x_sq_4 = x_2 * x_2
+
+  // 迭代 15 次对于 x < 3 精度绰绰有余
+  let k = 1
+  while k < 15 {
+    // 递推公式: T_k = T_{k-1} * (-1 * (x/2)^2) / (k * (n+k))
+    term = term * (-1.0 * x_sq_4) / (k * (n + k))
+    result = result + term
+    k = k + 1
+  }
+  return result
+}
+
+// 计算第一类修正 Bessel 函数 I_n(x)
+#let bessel_i(n, x) = {
+  if x == 0 { return if n == 0 { 1.0 } else { 0.0 } }
+
+  let x_2 = x / 2.0
+  let term = calc.pow(x_2, n) / calc.fact(n)
+  let result = term
+  let x_sq_4 = x_2 * x_2
+
+  let k = 1
+  while k < 15 {
+    // I 系列唯一的区别是没有 -1 (不震荡)
+    term = term * x_sq_4 / (k * (n + k))
+    result = result + term
+    k = k + 1
+  }
+  return result
+}
+
+#let Gamma0(x) = { return calc.exp(-x) * bessel_i(0, x) }
+#let Gamma1(x) = { return calc.exp(-x) * bessel_i(1, x) }
+
+// 定义非角标引用
+#let parencite(key, ..args) = [文献~#cite(key, style: "ieee", ..args)]

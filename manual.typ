@@ -77,7 +77,7 @@ $
     & quad quad &&+ frac(i Lambda_0^s, 2 omega_+) J_0^2 J_s |delta phi_0|^2 delta phi_s [N_0^s + N_1 (frac(v_perp^2, 4 v_(t i)^2) + frac(v_parallel^2, 2 v_(t i)^2))] } \
   &= frac(i Lambda_0^s, 2 omega_s) frac(e, T_i) F_(M i) {&&J_0 J_+ delta phi_0^* delta phi_+ [N_0^+ + N_1 (...)] \
     & quad quad &&+ frac(i Lambda_0^s, 2 omega_+) J_0^2 J_s |delta phi_0|^2 delta phi_s [N_0^s + N_1 (...)] }.
-$<notag>
+$<eq:example0>
 == 其他
 === 在 Typst 中插入 #LaTeX logo
 使用`metalogo`包可以插入 #LaTeX logo，使用方法如下
@@ -114,6 +114,11 @@ $ a/b $
 ```
 这样只需要给不编号的公式后添加`<notag>`标签即可，例如
 $ grad p= vb(J) cprod vb(B). $<notag>
+
+此外，上面给出的行间公式编号方法在引用时会有一些问题，其引用时会自动将编号两侧的括号删去，只留下编号本身，例如@eq:example0 。可以将 `numbering`格式当作一个函数传入，这样就不会自动删去括号，例如
+```typc
+set math.equation(numbering: n => numbering("(1)", n))
+```
 
 == 文本排版相关
 === 盘古之白问题
