@@ -345,3 +345,15 @@
 
 // 定义非角标引用
 #let parencite(key, ..args) = [文献~#cite(key, style: "ieee", ..args)]
+
+// 在 Typst 中定义一些 LaTeX 中常用的命令
+#let sim = $tilde$
+#let noteq = $eq.not$
+#let simeq = $tilde.eq$
+#let gg = $>>$
+#let ll = $<<$
+#let varepsilon = $epsilon.alt$
+#let vartheta = $theta.alt$
+#let varphi = $phi.alt$
+#let cdot = $dot.op$
+#let pm = $plus.minus$
