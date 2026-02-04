@@ -87,7 +87,7 @@
   // 页面设置
   set page(
     paper: "a4", // 使用 A4 纸张
-    margin: (x: 3cm, y: 3cm), // 设置页边距：左右上下均为 3cm (约等于标准 1 英寸边距)，但是根据clreq 中说的，似乎这样定义边距并不好，可能需要先画出版心然后再计算边距
+    margin: (x: 2.5cm, y: 3cm), // 设置页边距：左右上下均为 3cm (约等于标准 1 英寸边距)，但是根据clreq 中说的，似乎这样定义边距并不好，可能需要先画出版心然后再计算边距
     // 可见 https://typst-doc-cn.github.io/clreq/#type-area-width
     numbering: "1", // 页码编号格式
     fill: geyecolor, // 设置页面背景填充色 (护眼模式)
@@ -137,8 +137,8 @@
   // 模拟 LaTeX 中 fontspec 的 BoldFont={SimHei} 行为：
   // 当文本需要加粗 (weight: "bold") 时，强制使用黑体 (SimHei 或 Heiti SC)。
   // 这样做的原因是许多中文字体（如楷体、宋体）直接加粗效果不佳，通常习惯用黑体表示粗体。
-  show text.where(weight: "bold"): set text(font: ("Times New Roman", "SimHei", "Heiti SC"))
-  show strong: set text(font: ("Times New Roman", "SimHei", "Heiti SC")) // 显式设置 strong 元素的字体，作为双重保障
+  show text.where(weight: "bold"): set text(font: ("Times New Roman", "FZJinLS-B-GB", "SimHei", "Heiti SC"))
+  show strong: set text(font: ("Times New Roman", "FZJinLS-B-GB", "SimHei", "Heiti SC")) // 显式设置 strong 元素的字体，作为双重保障
 
   // 斜体设置
   // 当文本需要倾斜 (emph) 时，使用楷体 (STKaiti)。
@@ -345,6 +345,7 @@
 
 // 定义非角标引用
 #let parencite(key, ..args) = [文献~#cite(key, style: "ieee", ..args)]
+#let authorcite(key, ..args) = [文献~#cite(key, style: "annual-reviews-author-date", ..args)]
 
 // 在 Typst 中定义一些 LaTeX 中常用的命令
 #let sim = $tilde$
