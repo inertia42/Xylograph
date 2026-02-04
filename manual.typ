@@ -221,10 +221,37 @@ Typst v0.13 改进了之前的首行缩进问题，现在可以用如下命令
 == 参考文献相关
 === 参考文献引用风格
 一般来说参考文献引用会有上角标和非角标两种风格，在Typst中这两种风格是和选择的`style`挂钩的，也即来源于不同的 CSL 文件，这里对于我们常用的 `gb-7714-2015-numeric`风格可以定义一个专门的非角标引用命令
-```typc
 #let parencite(key, ..args) = [文献~#cite(key, style: "ieee", ..args)]
 ```
 注意使用时的调用格式是`#parencite(<label>)`，而不是`#parencite(label)`。
+
+但是上面的方案不能正确处理同时引用多个文献的连续引用情况，`Y.D.X.`给出了一个解决方案，手动添加了一个 CSL 样式，这样只需要调用`#parencite(<label1>, <label2>, ...)`即可。
+````typc
+#let parencite-csl = bytes(
+  
+    <info>
+      <title>China National Standard GB/T 7714-2015 (numeric, 中文, 只支持引用, 引用不上标)</title>
+      <id>https://github.com/citation-style-language/styles/blob/a05bb4d/china-national-standard-gb-t-7714-2015-numeric.csl#L423-L430</id>
+    </info>
+    <citation collapse="citation-number" after-collapse-delimiter=",">
+      <sort>
+        <key variable="citation-number"/>
+      </sort>
+      <!-- 此处删除了 vertical-align="sup" -->
+      <layout delimiter="," prefix="[" suffix="]">
+        <text variable="citation-number"/>
+      </layout>
+    </citation>
+  </style>
+  ```.text,
+)
+
+#let parencite(..args) = {
+  let keys = args.pos()
+  let cite-args = args.named()
+  [文献~#keys.map(k => cite(k, style: parencite-csl, ..cite-args)).join()]
+}
+````
 === 参考文献样式的本地化问题
 由于Typst不支持CSL-M标准，在部分情况下，当中英文参考文献同时出现时，英文参考文献中的“et al.”会显示为“等”，可见#link("https://typst-doc-cn.github.io/guide/FAQ/bib-etal-lang.html")[FAQ：如何修复英文参考文献中的“等”？]，这里采用了其中的解决方案，引入 modern-nju-thesis 的`bilingual-bibliography`函数进行手动替换，使用如下命令
 ```typc
